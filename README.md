@@ -14,6 +14,6 @@ paste src.txt tgt.txt > train.txt
 
 ### train
 ```
-python3 train.py
-python3 infer.py
+python train.py
+python infer.py
 ```
