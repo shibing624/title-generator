@@ -40,7 +40,7 @@ def get_validation_data(input_texts, target_texts, char2id, maxlen=400):
 
 
 def train(train_path='', test_path='', save_vocab_path='', attn_model_path='',
-          batch_size=64, epochs=100, maxlen=400, hidden_dim=128):
+          batch_size=64, epochs=100, maxlen=400, hidden_dim=128, min_count = 5):
     data_reader = CorpusReader(train_path)
     input_texts, target_texts = data_reader.build_dataset(train_path)
     test_input_texts, test_target_texts = data_reader.build_dataset(test_path)
@@ -59,7 +59,7 @@ def train(train_path='', test_path='', save_vocab_path='', attn_model_path='',
         print('num of samples:', len(input_texts))
         print('max sequence length for inputs:', max_input_texts_len)
 
-        chars = data_reader.read_vocab(input_texts + target_texts, min_count=10)
+        chars = data_reader.read_vocab(input_texts + target_texts, min_count=min_count)
         id2char = {i: j for i, j in enumerate(chars)}
         char2id = {j: i for i, j in id2char.items()}
         save_word_dict(char2id, save_vocab_path)
@@ -83,4 +83,5 @@ if __name__ == "__main__":
           batch_size=config.batch_size,
           epochs=config.epochs,
           maxlen=config.maxlen,
-          hidden_dim=config.rnn_hidden_dim)
+          hidden_dim=config.rnn_hidden_dim,
+          min_count = config.min_count)
