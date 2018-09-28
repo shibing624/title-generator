@@ -3,7 +3,9 @@
 @author:XuMing（xuming624@qq.com)
 @description: 
 """
+import sys
 
+sys.path.append('..')
 import os
 
 import numpy as np
@@ -40,38 +42,30 @@ def get_validation_data(input_texts, target_texts, char2id, maxlen=400):
 
 
 def train(train_path='', test_path='', save_vocab_path='', attn_model_path='',
-          batch_size=64, epochs=100, maxlen=400, hidden_dim=128, min_count = 5):
-    data_reader = CorpusReader(train_path)
+          batch_size=64, epochs=100, maxlen=400, hidden_dim=128, min_count=5):
+    # load or save word dict
+    if os.path.exists(save_vocab_path):
+        token_2_id = load_word_dict(save_vocab_path)
+        data_reader = CorpusReader(train_path=train_path , token_2_id=token_2_id,min_count=min_count)
+    else:
+        print('Training data...')
+        data_reader = CorpusReader(train_path=train_path,min_count=min_count)
+        token_2_id = data_reader.token_2_id
+        save_word_dict(token_2_id, save_vocab_path)
+
+    id_2_token = data_reader.id_2_token
     input_texts, target_texts = data_reader.build_dataset(train_path)
     test_input_texts, test_target_texts = data_reader.build_dataset(test_path)
 
-    # load or save word dict
-    if os.path.exists(save_vocab_path):
-        char2id = load_word_dict(save_vocab_path)
-        id2char = {int(j): i for i, j in char2id.items()}
-        chars = set([i for i in char2id.keys()])
-    else:
-        print('Training data...')
-        print('input_texts:', input_texts[0])
-        print('target_texts:', target_texts[0])
-        max_input_texts_len = max([len(text) for text in input_texts])
-
-        print('num of samples:', len(input_texts))
-        print('max sequence length for inputs:', max_input_texts_len)
-
-        chars = data_reader.read_vocab(input_texts + target_texts, min_count=min_count)
-        id2char = {i: j for i, j in enumerate(chars)}
-        char2id = {j: i for i, j in id2char.items()}
-        save_word_dict(char2id, save_vocab_path)
-
-    model = Seq2seqAttnModel(chars,
+    model = Seq2seqAttnModel(token_2_id,
                              attn_model_path=attn_model_path,
                              hidden_dim=hidden_dim).build_model()
-    evaluator = Evaluate(model, attn_model_path, char2id, id2char, maxlen)
-    model.fit_generator(data_generator(input_texts, target_texts, char2id, batch_size, maxlen),
+
+    evaluator = Evaluate(model, attn_model_path, token_2_id, id_2_token, maxlen)
+    model.fit_generator(data_generator(input_texts, target_texts, token_2_id, batch_size, maxlen),
                         steps_per_epoch=(len(input_texts) + batch_size - 1) // batch_size,
                         epochs=epochs,
-                        validation_data=get_validation_data(test_input_texts, test_target_texts, char2id, maxlen),
+                        validation_data=get_validation_data(test_input_texts, test_target_texts, token_2_id, maxlen),
                         callbacks=[evaluator])
 
 
@@ -84,4 +78,4 @@ if __name__ == "__main__":
           epochs=config.epochs,
           maxlen=config.maxlen,
           hidden_dim=config.rnn_hidden_dim,
-          min_count = config.min_count)
+          min_count=config.min_count)

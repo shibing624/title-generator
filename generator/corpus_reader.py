@@ -4,7 +4,7 @@
 from codecs import open
 
 from generator.utils.io_utils import get_logger
-from generator.reader import Reader, PAD_TOKEN, EOS_TOKEN, GO_TOKEN, PAD_ID, EOS_ID, GO_ID
+from generator.reader import Reader, PAD_TOKEN, EOS_TOKEN, GO_TOKEN, UNK_TOKEN
 
 logger = get_logger(__name__)
 
@@ -33,10 +33,12 @@ class CorpusReader(Reader):
     """
     UNKNOWN_TOKEN = 'UNK'
 
-    def __init__(self, train_path=None, token_2_id=None):
+    def __init__(self, train_path=None, token_2_id=None, min_count=0):
         super(CorpusReader, self).__init__(
-            train_path=train_path, token_2_id=token_2_id,
-            special_tokens=[PAD_TOKEN, GO_TOKEN, EOS_TOKEN, CorpusReader.UNKNOWN_TOKEN])
+            train_path=train_path,
+            token_2_id=token_2_id,
+            special_tokens=[PAD_TOKEN, GO_TOKEN, EOS_TOKEN, CorpusReader.UNKNOWN_TOKEN],
+            min_count=min_count)
         self.UNKNOWN_ID = self.token_2_id[CorpusReader.UNKNOWN_TOKEN]
 
     def read_samples_by_string(self, path):
@@ -58,25 +60,10 @@ class CorpusReader(Reader):
             for line in f:
                 yield line.lower().strip().split()
 
-    @staticmethod
-    def read_vocab(input_texts, min_count=0):
-        vocab = [PAD_TOKEN, EOS_TOKEN, GO_TOKEN]
-        vocab_dict = dict()
-        for line in input_texts:
-            for char in line:
-                if char not in vocab_dict:
-                    vocab_dict[char] = 1
-                else:
-                    vocab_dict[char] += 1
-        vocab_use = [i for i, j in vocab_dict.items() if j > min_count]
-        vocab.extend(vocab_use)
-        # vocab_sort = sorted(vocab_dict.items(), key=lambda x: x[1], reverse=True)
-        return sorted(vocab)
-
 
 def str2id(s, char2id, maxlen):
     # 文字转整数id
-    return [char2id.get(c, char2id[PAD_TOKEN]) for c in s[:maxlen]]
+    return [char2id.get(c, char2id[UNK_TOKEN]) for c in s[:maxlen]]
 
 
 def padding(x, char2id):

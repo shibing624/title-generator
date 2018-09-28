@@ -5,7 +5,7 @@
 """
 import sys
 
-sys.path.append('../..')
+sys.path.append('..')
 import os
 
 from generator import config

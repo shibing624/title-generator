@@ -1,39 +1,44 @@
 # -*- coding: utf-8 -*-
 # Author: XuMing <xuming624@qq.com>
 # Brief: Date reader for training seq2seq model
-from collections import Counter
+from collections import defaultdict
 
 # Define constants associated with the usual special tokens.
 PAD_ID = 0
 GO_ID = 1
 EOS_ID = 2
+UNK_ID = 3
 
 PAD_TOKEN = 'PAD'
 EOS_TOKEN = 'EOS'
 GO_TOKEN = 'GO'
+UNK_TOKEN = 'UNK'
 
 
 class Reader(object):
     def __init__(self, train_path=None, token_2_id=None,
-                 special_tokens=()):
-        if train_path is None:
+                 special_tokens=(), min_count=0):
+        if token_2_id:
             self.token_2_id = token_2_id
         else:
-            token_counts = Counter()
+            token_counts = defaultdict(int)
             for tokens in self.read_tokens(train_path):
-                token_counts.update(tokens)
-
-            self.token_counts = token_counts
+                for i in tokens:
+                    token_counts[i] += 1
+            new_token_counts = {}
+            for i, j in token_counts.items():
+                if j >= min_count:
+                    new_token_counts[i] = j
+            self.token_counts = new_token_counts
             # Get max_vocabulary size words
-            count_pairs = sorted(token_counts.items(), key=lambda k: (-k[1], k[0]))
+            count_pairs = sorted(self.token_counts.items(), key=lambda k: (-k[1], k[0]))
             vocab, _ = list(zip(*count_pairs))
             vocab = list(vocab)
             # Insert the special tokens to the beginning
             vocab[0:0] = special_tokens
             full_token_id = list(zip(vocab, range(len(vocab))))
-            self.full_token_2_id = dict(full_token_id)
             self.token_2_id = dict(full_token_id)
-        self.id_2_token = {v: k for k, v in self.token_2_id.items()}
+        self.id_2_token = {int(v): k for k, v in self.token_2_id.items()}
 
     def read_tokens(self, path):
         """
