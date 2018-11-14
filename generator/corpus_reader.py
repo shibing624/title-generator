@@ -31,15 +31,15 @@ class CorpusReader(Reader):
     """
     Read data set
     """
-    UNKNOWN_TOKEN = 'UNK'
 
-    def __init__(self, train_path=None, token_2_id=None, min_count=0):
+    def __init__(self, train_path=None, token_2_id=None, min_count=1, sep='\t'):
         super(CorpusReader, self).__init__(
             train_path=train_path,
             token_2_id=token_2_id,
-            special_tokens=[PAD_TOKEN, GO_TOKEN, EOS_TOKEN, CorpusReader.UNKNOWN_TOKEN],
-            min_count=min_count)
-        self.UNKNOWN_ID = self.token_2_id[CorpusReader.UNKNOWN_TOKEN]
+            special_tokens=[PAD_TOKEN, GO_TOKEN, EOS_TOKEN, UNK_TOKEN],
+            min_count=min_count,
+            sep=sep)
+        self.UNKNOWN_ID = self.token_2_id[UNK_TOKEN]
 
     def read_samples_by_string(self, path):
         with open(path, 'r', encoding='utf-8') as f:
@@ -48,12 +48,13 @@ class CorpusReader(Reader):
                 line = line.lower().strip()
                 if not line:
                     break
-                if '\t' not in line: continue
-                source, target = line.split('\t')
+                if self.sep not in line:
+                    continue
+                source, target = line.split(self.sep)
                 yield source.split(), target.split()
 
     def unknown_token(self):
-        return CorpusReader.UNKNOWN_TOKEN
+        return UNK_TOKEN
 
     def read_tokens(self, path, is_infer=False):
         with open(path, 'r', encoding='utf-8') as f:

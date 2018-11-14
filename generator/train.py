@@ -51,14 +51,15 @@ def train(train_path='',
           hidden_dim=128,
           min_count=5,
           dropout=0.2,
-          use_gpu=False):
+          use_gpu=False,
+          sep='\t'):
     # load or save word dict
     if os.path.exists(save_vocab_path):
         token_2_id = load_word_dict(save_vocab_path)
-        data_reader = CorpusReader(train_path=train_path, token_2_id=token_2_id, min_count=min_count)
+        data_reader = CorpusReader(train_path=train_path, token_2_id=token_2_id, min_count=min_count, sep=sep)
     else:
         print('Training data...')
-        data_reader = CorpusReader(train_path=train_path, min_count=min_count)
+        data_reader = CorpusReader(train_path=train_path, min_count=min_count, sep=sep)
         token_2_id = data_reader.token_2_id
         save_word_dict(token_2_id, save_vocab_path)
 
@@ -91,4 +92,5 @@ if __name__ == "__main__":
           hidden_dim=config.rnn_hidden_dim,
           min_count=config.min_count,
           dropout=config.dropout,
-          use_gpu=config.use_gpu)
+          use_gpu=config.use_gpu,
+          sep=config.sep)

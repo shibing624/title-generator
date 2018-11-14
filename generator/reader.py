@@ -17,7 +17,7 @@ UNK_TOKEN = 'UNK'
 
 class Reader(object):
     def __init__(self, train_path=None, token_2_id=None,
-                 special_tokens=(), min_count=0):
+                 special_tokens=(), min_count=1, sep='\t'):
         if token_2_id:
             self.token_2_id = token_2_id
         else:
@@ -39,6 +39,7 @@ class Reader(object):
             full_token_id = list(zip(vocab, range(len(vocab))))
             self.token_2_id = dict(full_token_id)
         self.id_2_token = {int(v): k for k, v in self.token_2_id.items()}
+        self.sep = sep
 
     def read_tokens(self, path):
         """
