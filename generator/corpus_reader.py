@@ -29,7 +29,7 @@ def load_word_dict(save_path):
 
 class CorpusReader(Reader):
     """
-    Read CGED data set
+    Read data set
     """
     UNKNOWN_TOKEN = 'UNK'
 

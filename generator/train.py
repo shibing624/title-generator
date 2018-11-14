@@ -41,15 +41,24 @@ def get_validation_data(input_texts, target_texts, char2id, maxlen=400):
         return [X, Y], None
 
 
-def train(train_path='', test_path='', save_vocab_path='', attn_model_path='',
-          batch_size=64, epochs=100, maxlen=400, hidden_dim=128, min_count=5):
+def train(train_path='',
+          test_path='',
+          save_vocab_path='',
+          attn_model_path='',
+          batch_size=64,
+          epochs=100,
+          maxlen=400,
+          hidden_dim=128,
+          min_count=5,
+          dropout=0.2,
+          use_gpu=False):
     # load or save word dict
     if os.path.exists(save_vocab_path):
         token_2_id = load_word_dict(save_vocab_path)
-        data_reader = CorpusReader(train_path=train_path , token_2_id=token_2_id,min_count=min_count)
+        data_reader = CorpusReader(train_path=train_path, token_2_id=token_2_id, min_count=min_count)
     else:
         print('Training data...')
-        data_reader = CorpusReader(train_path=train_path,min_count=min_count)
+        data_reader = CorpusReader(train_path=train_path, min_count=min_count)
         token_2_id = data_reader.token_2_id
         save_word_dict(token_2_id, save_vocab_path)
 
@@ -59,7 +68,9 @@ def train(train_path='', test_path='', save_vocab_path='', attn_model_path='',
 
     model = Seq2seqAttnModel(token_2_id,
                              attn_model_path=attn_model_path,
-                             hidden_dim=hidden_dim).build_model()
+                             hidden_dim=hidden_dim,
+                             use_gpu=use_gpu,
+                             dropout=dropout).build_model()
 
     evaluator = Evaluate(model, attn_model_path, token_2_id, id_2_token, maxlen)
     model.fit_generator(data_generator(input_texts, target_texts, token_2_id, batch_size, maxlen),
@@ -78,4 +89,6 @@ if __name__ == "__main__":
           epochs=config.epochs,
           maxlen=config.maxlen,
           hidden_dim=config.rnn_hidden_dim,
-          min_count=config.min_count)
+          min_count=config.min_count,
+          dropout=config.dropout,
+          use_gpu=config.use_gpu)
