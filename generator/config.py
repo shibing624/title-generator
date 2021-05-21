@@ -19,10 +19,10 @@ attn_model_path = os.path.join(output_dir, 'attn_model.weight')
 
 # config
 batch_size = 32
-epochs = 100
+epochs = 50
 rnn_hidden_dim = 128
 maxlen = 400
-min_count = 50
+min_count = 5
 dropout = 0.0
 use_gpu = False
 sep = '\t'
