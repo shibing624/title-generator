@@ -1,4 +1,4 @@
-### The project stops updating, and the latest update is migrated to repo [text-generation](https://github.com/shibing624/text-generation)
+### The project stops updating, and the latest update is migrated to repo [text-generation](https://github.com/shibing624/textgen)
 
 # title-generator
 
